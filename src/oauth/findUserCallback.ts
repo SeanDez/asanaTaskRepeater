@@ -1,12 +1,13 @@
 // eslint-disable-next-line no-unused-vars
 import { Client as PGClient, QueryResult } from 'pg';
+import { IEncryptedUserTableData } from './encryptedUserCreds';
 
 const findUserQuery = `SELECT id, user_name
 FROM app_user
 WHERE asana_id = CAST($1 as varchar(40));
 `;
 
-const createUserQuery = `INSERT INTO app_user ('asana_id') VALUES ('$1')
+const createUserQuery = `INSERT INTO app_user ('asana_id', 'refresh_token_encrypted', 'access_token_encrypted') VALUES ('$1', '$2', '$3')
 RETURNING *;
 `;
 
@@ -15,7 +16,11 @@ interface UserRecord {
   asana_id: string
 }
 
-async function findAndPassUserToSerializer(asana_id: string, doneCallback: Function) {
+async function findAndPassUserToSerializer(
+  userTableData: IEncryptedUserTableData, doneCallback: Function,
+) {
+  const { asana_id, refresh_token_encrypted, access_token_encrypted } = userTableData;
+
   try {
     const pgClient = new PGClient();
     await pgClient.connect();
@@ -24,13 +29,18 @@ async function findAndPassUserToSerializer(asana_id: string, doneCallback: Funct
     if (queryResult.rows.length > 0) {
       const userRecord = queryResult.rows[0];
       pgClient.end();
-      return doneCallback(null, userRecord);
+
+      // deserialize
+      return Promise.resolve(doneCallback(null, userRecord));
     }
 
     // create new user
-    const createQueryResult: QueryResult = await pgClient.query(createUserQuery, [asana_id]);
+    const createQueryResult: QueryResult = await pgClient.query(createUserQuery,
+      [asana_id, refresh_token_encrypted, access_token_encrypted]);
     pgClient.end();
     const newUserRecord: UserRecord = createQueryResult.rows[0];
+
+    // deserialize
     return Promise.resolve(doneCallback(null, newUserRecord));
   } catch (error) {
     return Promise.resolve(doneCallback(error, null));

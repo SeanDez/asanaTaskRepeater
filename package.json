@@ -25,6 +25,7 @@
     "passport": "^0.4.1",
     "passport-asana": "0.0.1",
     "pg": "^8.3.0",
+    "simple-encryptor": "^4.0.0",
     "ts-jest": "^26.2.0",
     "typescript": "^3.9.7"
   },

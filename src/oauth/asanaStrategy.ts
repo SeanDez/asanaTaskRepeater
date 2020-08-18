@@ -1,10 +1,14 @@
 import path from 'path';
 import passport from 'passport';
+import Encryptor from 'simple-encryptor';
 import findAndPassUserToSerializer from './findUserCallback';
+import { IEncryptedUserTableData } from './encryptedUserCreds';
 
 const AsanaStrategy: any = require('passport-asana').Strategy;
 
 require('dotenv').config();
+
+const encryptor = Encryptor.createEncryptor(process.env.ENCRYPTOR_SECRET!);
 
 const callbackURL: string = `${process.env.ASANA_HTTPS_REDIRECT_URL}/oauth/callback`;
 
@@ -14,7 +18,13 @@ const asanaStrategy = new AsanaStrategy({
   callbackURL,
 }, async (asanaAccessToken: any,
   asanaRefreshToken: any, asanaProfile: any, doneCallback: Function) => {
-  await findAndPassUserToSerializer(asanaProfile.id, doneCallback);
+  const dataForUserTable: IEncryptedUserTableData = {
+    asana_id: asanaProfile.id,
+    refresh_token_encrypted: encryptor.encrypt(asanaRefreshToken),
+    access_token_encrypted: encryptor.encrypt(asanaAccessToken),
+  };
+
+  await findAndPassUserToSerializer(dataForUserTable, doneCallback);
 });
 
 passport.use(asanaStrategy); // referenced as 'Asana' in the route handler
