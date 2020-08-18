@@ -4,28 +4,46 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:dev": "tsc && node compiled/server.js",
+    "cron:test": "node compiled/cronjobs/test.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.0.0",
     "cors": "^2.8.5",
+    "cron": "^1.8.2",
     "dotenv": "^8.2.0",
     "es6-promise": "^4.2.8",
     "express": "^4.17.1",
+    "express-session": "^1.17.1",
     "isomorphic-fetch": "^2.2.1",
+    "jest": "^26.3.0",
     "nodemon": "^2.0.4",
     "passport": "^0.4.1",
     "passport-asana": "0.0.1",
+    "pg": "^8.3.0",
+    "ts-jest": "^26.2.0",
     "typescript": "^3.9.7"
   },
   "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
     "@types/cors": "^2.8.7",
+    "@types/cron": "^1.7.2",
     "@types/dotenv": "^8.2.0",
     "@types/es6-promise": "^3.3.0",
     "@types/express-session": "^1.17.0",
     "@types/isomorphic-fetch": "0.0.35",
-    "@types/node": "^14.0.27"
+    "@types/jest": "^26.0.9",
+    "@types/node": "^14.0.27",
+    "@types/passport": "^1.0.4",
+    "@types/pg": "^7.14.4",
+    "@typescript-eslint/eslint-plugin": "^3.9.0",
+    "@typescript-eslint/parser": "^3.9.0",
+    "eslint": "^7.6.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0"
   }
 }
