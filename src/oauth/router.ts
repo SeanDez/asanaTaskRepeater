@@ -16,7 +16,7 @@ router.get(
 
 router.get(
   '/oauth/callback',
-  passportWithAsanaStrategy.authenticate('Asana',
+  passportWithAsanaStrategy.authenticate('Asana'),
     (req: Request, res: Response) => {
       // set user cookies, then redirect home
       // pass the asana object from req.user into a cookie
@@ -31,7 +31,7 @@ router.get(
         .cookie('asana_access_token_encrypted', access_token_encrypted)
 
         .redirect(process.env.FRONTEND_URL!);
-    }),
+    },
 );
 
 export default router;

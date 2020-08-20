@@ -19,7 +19,7 @@ const asanaStrategy = new AsanaStrategy({
 }, async (asanaAccessToken: any,
   asanaRefreshToken: any, asanaProfile: any, doneCallback: Function) => {
   const dataForUserTable: IEncryptedUserTableData = {
-    asana_id: asanaProfile.id,
+    asana_id: asanaProfile._json.gid,
     refresh_token_encrypted: encryptor.encrypt(asanaRefreshToken),
     access_token_encrypted: encryptor.encrypt(asanaAccessToken),
   };
