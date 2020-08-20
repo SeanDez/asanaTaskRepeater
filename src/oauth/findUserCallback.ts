@@ -2,12 +2,12 @@
 import { Client as PGClient, QueryResult } from 'pg';
 import { IEncryptedUserTableData } from './encryptedUserCreds';
 
-const findUserQuery = `SELECT id, user_name
+const findUserQuery = `SELECT id, asana_id
 FROM app_user
 WHERE asana_id = CAST($1 as varchar(40));
 `;
 
-const createUserQuery = `INSERT INTO app_user ('asana_id', 'refresh_token_encrypted', 'access_token_encrypted') VALUES ('$1', '$2', '$3')
+const createUserQuery = `INSERT INTO app_user (asana_id, refresh_token_encrypted, access_token_encrypted) VALUES ($1, $2, $3)
 RETURNING *;
 `;
 

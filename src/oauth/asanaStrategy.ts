@@ -16,10 +16,11 @@ const asanaStrategy = new AsanaStrategy({
   clientID: process.env.ASANA_CLIENT_ID,
   clientSecret: process.env.ASANA_CLIENT_SECRET,
   callbackURL,
-}, async (asanaAccessToken: any,
-  asanaRefreshToken: any, asanaProfile: any, doneCallback: Function) => {
+}, async (
+  asanaAccessToken: any, asanaRefreshToken: any, asanaProfile: any, doneCallback: Function) => {
   const dataForUserTable: IEncryptedUserTableData = {
-    asana_id: asanaProfile.id,
+    /* eslint-disable no-underscore-dangle */
+    asana_id: asanaProfile._json.gid,
     refresh_token_encrypted: encryptor.encrypt(asanaRefreshToken),
     access_token_encrypted: encryptor.encrypt(asanaAccessToken),
   };
