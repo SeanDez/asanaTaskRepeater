@@ -3,9 +3,11 @@
 
 CREATE TABLE IF NOT EXISTS "app_user" (
   "id" SERIAL primary key,
-  "asana_id" VARCHAR not null unique,
-  "refresh_token_encrypted" VARCHAR(10000),
-  "access_token_encrypted" VARCHAR(10000)
+  "asana_id" TEXT not null unique,
+  "name" TEXT,
+  "email" TEXT,
+  "refresh_token_encrypted" TEXT,
+  "access_token_encrypted" TEXT
 )
 
 /*
