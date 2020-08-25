@@ -18,7 +18,7 @@ const router = Router();
 const encryptor = Encryptor.createEncryptor(process.env.ENCRYPTOR_SECRET!);
 
 // pass code to asana. get back refresh and auth token, and user object
-router.post('/authCode', async (req: Request, res: Response) => {
+router.get('/authCode', async (req: Request, res: Response) => {
   const tokenExchangeEndpoint = 'https://app.asana.com/-/oauth_token';
 
   const tokenRequestBody: IAuthCodeRequest = {
@@ -26,8 +26,12 @@ router.post('/authCode', async (req: Request, res: Response) => {
     client_id: process.env.ASANA_CLIENT_ID!,
     client_secret: process.env.ASANA_CLIENT_SECRET!,
     redirect_uri: process.env.ASANA_HTTPS_REDIRECT_URL!,
-    code: req.body.code,
+    code: req.query.code as string,
   };
+
+  console.log('----------------------');
+  console.log('tokenRequestBody', tokenRequestBody);
+  console.log('----------------------');
 
   try {
     const response = await fetch(tokenExchangeEndpoint, {
@@ -42,6 +46,10 @@ router.post('/authCode', async (req: Request, res: Response) => {
     const tokenObject: ITokenResponseBody = await response.json();
     const { access_token, refresh_token } = tokenObject;
     const { id, name, email } = tokenObject.data;
+
+    console.log('----------------------');
+    console.log('tokenObject', tokenObject);
+    console.log('----------------------');
 
     // see if the user already exists
     const asanaUserId: string = id;

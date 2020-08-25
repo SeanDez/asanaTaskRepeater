@@ -16,7 +16,8 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "outDir": "compiled"
+    "outDir": "compiled",
+    "sourceMap": true,
   },
   "include": [
     "src"
