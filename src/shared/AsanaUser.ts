@@ -19,9 +19,8 @@ export default class AsanaUser {
 
   public async findByAsanaId(): Promise<IApp_User | null> {
     const findUserByAsanaId = 'SELECT * from app_user WHERE asana_id = CAST($1 as text)';
-
     // await inferred by return keyword
-    return this.returnAsanaUserOrNull(findUserByAsanaId, this.asana_id);
+    return this.returnAsanaUserOrNull(findUserByAsanaId, ["'" + this.asana_id + "'"]);
   }
 
   public async createNew(name: string, email: string, refresh_token_raw: string,
@@ -34,15 +33,15 @@ export default class AsanaUser {
 
     // await inferred by return keyword
     const dbResponse = await this.returnAsanaUserOrNull(createNewUserQuery,
-      [this.asana_id, name, email, refresh_token_encrypted, access_token_encrypted]);
+      [`${this.asana_id}`, name, email, refresh_token_encrypted, access_token_encrypted]);
 
     return dbResponse;
   }
 
   public async update(columnsAndValues: object): Promise<IApp_User> {
-    const insertFragment = pgpInitialized.helpers.insert(columnsAndValues, null, { table: 'app_user' });
+    const insertFragment = pgpInitialized.helpers.update(columnsAndValues, null, { table: 'app_user' });
     const fullUpdateQuery = `${insertFragment} 
-    WHERE asana_id = ${this.asana_id}
+    WHERE asana_id = '${this.asana_id}'
     RETURNING *;`;
     const updatedUserData = await pgpConnection.one(fullUpdateQuery);
     return updatedUserData;
@@ -51,9 +50,9 @@ export default class AsanaUser {
   // --------------- Internal Methods
 
   private async returnAsanaUserOrNull(queryString: string, sqlParams: string | any[]) {
+    console.log(queryString, sqlParams)
     try {
-      const allColumns: IApp_User | null = await
-      pgpConnection.oneOrNone(queryString, sqlParams);
+      const allColumns: IApp_User | null = await pgpConnection.oneOrNone(queryString, sqlParams);
       return allColumns;
     } catch (error) {
       throw new Error(error);

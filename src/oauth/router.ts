@@ -3,6 +3,7 @@ import jsonwebtoken from 'jsonwebtoken';
 import 'es6-promise';
 import 'isomorphic-fetch';
 import dotenv from 'dotenv';
+import qs from 'qs';
 import Encryptor from 'simple-encryptor';
 import AsanaUser from '../shared/AsanaUser';
 
@@ -38,38 +39,38 @@ router.get('/authCode', async (req: Request, res: Response) => {
       method: 'post',
       mode: 'cors',
       headers: {
-        'content-type': 'application/json',
+        'content-type': 'application/x-www-form-urlencoded',
+        'Accept':'application/json'
       },
-      body: JSON.stringify(tokenRequestBody),
+      body: qs.stringify(tokenRequestBody),
     });
 
     const tokenObject: ITokenResponseBody = await response.json();
     const { access_token, refresh_token } = tokenObject;
     const { id, name, email } = tokenObject.data;
-
     console.log('----------------------');
     console.log('tokenObject', tokenObject);
     console.log('----------------------');
 
-    // see if the user already exists
-    const asanaUserId: string = id;
+ // see if the user already exists
+ const asanaUserId: string = id;
 
-    // todo what user info should be accessed?
-    const asanaUser = new AsanaUser(id);
-    let fullUserData: IApp_User | null = await asanaUser.findByAsanaId();
+ // todo what user info should be accessed?
+ const asanaUser = new AsanaUser(id);
+ let fullUserData: IApp_User | null = await asanaUser.findByAsanaId();
 
-    if (fullUserData === null) {
-      fullUserData = await asanaUser.createNew(name, email, refresh_token, access_token);
-    } {
-      // save/update the access/refresh token info
-      const refresh_token_encrypted = encryptor.encrypt(refresh_token);
-      const access_token_encrypted = encryptor.encrypt(access_token);
+ if (fullUserData === null) {
+   fullUserData = await asanaUser.createNew(name, email, refresh_token, access_token);
+ } {
+   // save/update the access/refresh token info
+   const refresh_token_encrypted = encryptor.encrypt(refresh_token);
+   const access_token_encrypted = encryptor.encrypt(access_token);
 
-      fullUserData = await asanaUser
-        .update({
-          name, email, refresh_token_encrypted, access_token_encrypted,
-        });
-    }
+   fullUserData = await asanaUser
+     .update({
+       name, email, refresh_token_encrypted, access_token_encrypted,
+     });
+ }
 
     // attach a jwt to a cookie
     const jwt = jsonwebtoken.sign(id, process.env.JWT_SECRET!);
