@@ -1,6 +1,11 @@
+import pgPromise from 'pg-promise';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+export const pgpOptioned = pgPromise({
+  capSQL: true,
+});
 
 const dbConfig = {
   host: process.env.PGHOST!,
@@ -10,4 +15,4 @@ const dbConfig = {
   password: process.env.PGPASSWORD!,
 };
 
-export default dbConfig;
+export const pgpConfigured = pgpOptioned(dbConfig);

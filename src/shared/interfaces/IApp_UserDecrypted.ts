@@ -1,4 +1,4 @@
-import IAppUser from './IApp_User';
+import IAppUser from '../IApp_User';
 
 type SharedFields = Omit<
   IAppUser,

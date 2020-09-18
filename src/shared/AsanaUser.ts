@@ -2,7 +2,7 @@ import PGPromise from 'pg-promise';
 import Encryptor from 'simple-encryptor';
 import dotenv from 'dotenv';
 import dbConfig from './dbConfig';
-import IApp_User from './IApp_User';
+import IApp_User from './interfaces/IApp_User';
 
 dotenv.config();
 

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import qs from 'qs';
 import jsonwebtoken from 'jsonwebtoken';
 import 'es6-promise';
 import 'isomorphic-fetch';
@@ -9,8 +10,8 @@ import AsanaUser from '../shared/AsanaUser';
 import EGrantTypes from './interfaces/EGrantTypes';
 import IAuthCodeRequest from './interfaces/IAuthCodeRequest';
 import ITokenResponseBody from './interfaces/ITokenResponseBody';
-import IApp_User from '../shared/IApp_User';
-import IApp_UserDecrypted from '../shared/IApp_UserDecrypted';
+import IApp_User from '../shared/interfaces/IApp_User';
+import IApp_UserDecrypted from '../shared/interfaces/IApp_UserDecrypted';
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ router.get('/authCode', async (req: Request, res: Response) => {
   const tokenExchangeEndpoint = 'https://app.asana.com/-/oauth_token';
 
   const tokenRequestBody: IAuthCodeRequest = {
-    grant_type: EGrantTypes.authCode,
+    grant_type: 'authorization_code',
     client_id: process.env.ASANA_CLIENT_ID!,
     client_secret: process.env.ASANA_CLIENT_SECRET!,
     redirect_uri: process.env.ASANA_HTTPS_REDIRECT_URL!,
@@ -36,20 +37,28 @@ router.get('/authCode', async (req: Request, res: Response) => {
   try {
     const response = await fetch(tokenExchangeEndpoint, {
       method: 'post',
-      mode: 'cors',
+      // mode: 'cors',
       headers: {
-        'content-type': 'application/json',
+        'content-type': 'application/x-www-form-urlencoded',
+        accept: 'application/json',
       },
-      body: JSON.stringify(tokenRequestBody),
+      body: qs.stringify(tokenRequestBody),
     });
 
+    console.log('response', response);
+
+    if (response.ok === false) {
+      throw new Error(`Request failed: ${response.status} - ${response.statusText}`);
+    }
+
     const tokenObject: ITokenResponseBody = await response.json();
-    const { access_token, refresh_token } = tokenObject;
-    const { id, name, email } = tokenObject.data;
 
     console.log('----------------------');
     console.log('tokenObject', tokenObject);
     console.log('----------------------');
+
+    const { access_token, refresh_token } = tokenObject;
+    const { id, name, email } = tokenObject.data;
 
     // see if the user already exists
     const asanaUserId: string = id;
