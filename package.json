@@ -1,11 +1,11 @@
 {
-  "name": "asanaTaskRepeater",
+  "name": "asana_task_repeater",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "tsc && node compiled/server.js",
+    "dev": "ts-node-dev src/server.ts --respawn",
     "cron:test": "node compiled/cronjobs/test.js"
   },
   "keywords": [],
@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.0",
+    "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
     "dotenv": "^8.2.0",
@@ -21,6 +22,7 @@
     "express-session": "^1.17.1",
     "isomorphic-fetch": "^2.2.1",
     "jest": "^26.3.0",
+    "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.4",
     "passport": "^0.4.1",
     "passport-asana": "0.0.1",
@@ -28,10 +30,13 @@
     "react-router-dom": "^5.2.0",
     "simple-encryptor": "^4.0.0",
     "ts-jest": "^26.2.0",
+    "ts-node": "^9.0.0",
+    "ts-node-dev": "^1.0.0-pre.62",
     "typescript": "^3.9.7"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
+    "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.7",
     "@types/cron": "^1.7.2",
     "@types/dotenv": "^8.2.0",
@@ -39,6 +44,7 @@
     "@types/express-session": "^1.17.0",
     "@types/isomorphic-fetch": "0.0.35",
     "@types/jest": "^26.0.9",
+    "@types/jsonwebtoken": "^8.5.0",
     "@types/node": "^14.0.27",
     "@types/passport": "^1.0.4",
     "@types/pg": "^7.14.4",

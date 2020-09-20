@@ -4,7 +4,7 @@ import { IEncryptedUserTableData } from './encryptedUserCreds';
 
 const findUserQuery = `SELECT id, asana_id
 FROM app_user
-WHERE asana_id = CAST($1 as varchar(40));
+WHERE CAST(asana_id as TEXT) = CAST($1 as TEXT;
 `;
 
 const createUserQuery = `INSERT INTO app_user (asana_id, refresh_token_encrypted, access_token_encrypted) VALUES ($1, $2, $3)
@@ -31,7 +31,7 @@ async function findAndPassUserToSerializer(
       pgClient.end();
 
       // deserialize
-      return Promise.resolve(doneCallback(null, userRecord));
+      return doneCallback(null, userRecord);
     }
 
     // create new user
@@ -41,9 +41,9 @@ async function findAndPassUserToSerializer(
     const newUserRecord: UserRecord = createQueryResult.rows[0];
 
     // deserialize
-    return Promise.resolve(doneCallback(null, newUserRecord));
+    return doneCallback(null, newUserRecord);
   } catch (error) {
-    return Promise.resolve(doneCallback(error, null));
+    return doneCallback(error, null);
   }
 }
 
