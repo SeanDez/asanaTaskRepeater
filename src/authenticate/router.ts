@@ -72,7 +72,7 @@ router.get('/logout', (req: Request, res: Response) => {
 /*
   passport middleware redirects to the scope grant page
 
-  thus no route handler
+  thus no route handler callback
 */
 router.get('/', passportWithAsanaStrategy.authenticate('Asana'));
 

@@ -13,38 +13,37 @@ require('dotenv').config();
 const server = Express();
 
 // setup a session cookie
-// passport.serializeUser((userData: App_User, serialize: Function) => {
-//   serialize(null, userData.id);
-// });
-
-// const findUserByIdQuery = `SELECT *
-// FROM app_user
-// WHERE CAST(id AS varchar(40)) = CAST($1 AS varchar(40));
-// `;
+passport.serializeUser((userData: App_User, serialize: Function) => {
+  serialize(null, userData.local_id);
+});
 
 // decrypt a session cookie and access db data with its value
-// passport.deserializeUser(async (userId: number, deserialize: Function) => {
-//   try {
-//     const pgClient = new PGClient();
-//     pgClient.connect();
-//     const queryResult: QueryResult = await pgClient.query(findUserByIdQuery, [userId]);
-//     pgClient.end();
+passport.deserializeUser(async (local_id: number, deserialize: Function) => {
+  try {
+    const findUserByIdQuery = `SELECT *
+FROM app_user
+WHERE CAST(local_id AS TEXT) = CAST($1 AS TEXT;`;
 
-//     if (queryResult.rows.length > 0) {
-//       const userRecord: App_User = queryResult.rows[0];
-//       return deserialize(null, userRecord);
-//     }
+    const pgClient = new PGClient();
+    pgClient.connect();
+    const queryResult: QueryResult = await pgClient.query(findUserByIdQuery, [local_id]);
+    pgClient.end();
 
-//     // user not found
-//     return deserialize(null, false);
-//   } catch (error) {
-//     return deserialize(error);
-//   }
-// });
+    if (queryResult.rows.length > 0) {
+      const userRecord: App_User = queryResult.rows[0];
+      return deserialize(null, userRecord);
+    }
 
-// const expressSessionOptions = {
-//   secret: process.env.SESSION_SECRET!,
-// };
+    // user not found
+    return deserialize(null, false);
+  } catch (error) {
+    return deserialize(error);
+  }
+});
+
+const expressSessionOptions = {
+  secret: process.env.SESSION_SECRET!,
+};
 
 const corsConfigured = cors({
   credentials: true,

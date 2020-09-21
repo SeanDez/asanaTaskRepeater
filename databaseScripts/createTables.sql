@@ -4,11 +4,13 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS "app_user" (
-  "id" SERIAL primary key,
-  "asana_id" VARCHAR not null unique,
-  "refresh_token_encrypted" VARCHAR(10000),
-  "access_token_encrypted" VARCHAR(10000)
-)
+  "local_id" SERIAL primary key,
+  "gid" TEXT not null unique,
+  "asana_email" TEXT not null unique,
+  "display_name" TEXT,
+  "refresh_token_encrypted" TEXT not null,
+  "access_token_encrypted" TEXT
+);
 
 /*
 CREATE TABLE IF NOT EXISTS "repeat_rule" (

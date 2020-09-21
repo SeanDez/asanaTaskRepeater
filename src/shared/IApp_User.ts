@@ -1,4 +1,8 @@
 export interface App_User {
-  id: number,
-  asana_id: string
+  local_id: number;
+  gid: string;
+  asana_email: string;
+  displayName: string;
+  refresh_token_encrypted: string;
+  access_token_encrypted: string;
 }

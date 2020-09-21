@@ -10,7 +10,7 @@ require('dotenv').config();
 
 const encryptor = Encryptor.createEncryptor(process.env.ENCRYPTOR_SECRET!);
 
-const callbackURL: string = `${process.env.ASANA_HTTPS_REDIRECT_URL}/oauth/callback`;
+const callbackURL: string = process.env.ASANA_HTTPS_REDIRECT_URL!;
 
 const asanaStrategy = new AsanaStrategy({
   clientID: process.env.ASANA_CLIENT_ID,
@@ -18,9 +18,13 @@ const asanaStrategy = new AsanaStrategy({
   callbackURL,
 }, async (
   asanaAccessToken: any, asanaRefreshToken: any, asanaProfile: any, doneCallback: Function) => {
+  const { email, gid, name } = asanaProfile._json;
+
   const dataForUserTable: IEncryptedUserTableData = {
     /* eslint-disable no-underscore-dangle */
-    asana_id: asanaProfile._json.gid,
+    gid,
+    asana_email: email,
+    display_name: name,
     refresh_token_encrypted: encryptor.encrypt(asanaRefreshToken),
     access_token_encrypted: encryptor.encrypt(asanaAccessToken),
   };
