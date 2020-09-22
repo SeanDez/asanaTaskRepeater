@@ -24,20 +24,23 @@ interface AuthenticatedRequest extends Request {
 /*
   This route is hit after the user logs in (or grants scopes initally)
 
-  A JWT is set with the asana_id. Then a redirect to the front end app
+  It should send back a 204 or 401
 */
 router.get(
   '/callback',
   passportWithAsanaStrategy.authenticate('Asana'),
   (req: Request, res: Response) => {
+    if (req.user) { res.status(204).send(); }
+
+    res.status(401).json({ message: 'Auth middleware failed to return a user inside /oauth/callback' });
     // send back a jwt
     // jwt has the asana_id and is signed
-    const jwt = jsonwebtoken.sign((req.user as { asana_id: string }).asana_id, JWT_SECRET!);
+    // const jwt = jsonwebtoken.sign((req.user as { asana_id: string }).asana_id, JWT_SECRET!);
 
-    res
-      .cookie('asanaIdJwt', jwt)
-      .status(200)
-      .redirect(FRONTEND_URL!);
+  //   res
+  //     .cookie('asanaIdJwt', jwt)
+  //     .status(200)
+  //     .redirect(FRONTEND_URL!);
   },
 );
 

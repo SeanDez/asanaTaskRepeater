@@ -29,6 +29,14 @@ const asanaStrategy = new AsanaStrategy({
     access_token_encrypted: encryptor.encrypt(asanaAccessToken),
   };
 
+  passport.serializeUser((user, done) => {
+    done(null, user);
+  });
+
+  passport.deserializeUser((user, done) => {
+    done(null, user);
+  });
+
   await findAndPassUserToSerializer(dataForUserTable, doneCallback);
 });
 
