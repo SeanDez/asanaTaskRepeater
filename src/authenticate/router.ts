@@ -2,6 +2,7 @@
 import dotenv from 'dotenv';
 import { Router, Request, Response } from 'express';
 import jsonwebtoken from 'jsonwebtoken';
+// import passport from 'passport';
 
 import passportWithAsanaStrategy from './asanaStrategy';
 import { IEncryptedUserTableData } from './encryptedUserCreds';
@@ -33,7 +34,6 @@ router.get(
     // send back a jwt
     // jwt has the asana_id and is signed
     const jwt = jsonwebtoken.sign((req.user as { asana_id: string }).asana_id, JWT_SECRET!);
-
     res
       .cookie('asanaIdJwt', jwt)
       .status(200)
