@@ -35,7 +35,7 @@ const tokenExchangeEndpoint = 'https://app.asana.com/-/oauth_token';
 
 /*
   Receives the auth code. Handles initial token exchange
-  Also finds or creates a new user locally
+  Also finds or creates a new user locally, and responds with a jwt cookie
 */
 router.get('/receives-auth-code', async (req: Request, res: Response) => {
   const requestOptions = {
@@ -59,8 +59,10 @@ router.get('/receives-auth-code', async (req: Request, res: Response) => {
 
     const tokenData = await tokenEndpointResponse.json();
 
-    // todo patch this with actual values
-    const { email: asana_email, gid, name: display_name, refresh_token, access_token } = tokenData._json;
+    // todo patch this with actual property access after a test request
+    const {
+      email: asana_email, gid, name: display_name, refresh_token, access_token,
+    } = tokenData._json;
 
     // see if current user exists
     const checkUserQuery = 'SELECT * FROM app_user WHERE CAST(asana_email AS TEXT) = CAST($1 AS TEXT);';
@@ -81,12 +83,23 @@ router.get('/receives-auth-code', async (req: Request, res: Response) => {
 
       res
         .status(204)
-        .cookie('asana_email', jwtWithAsanaEmail)
+        .cookie('asana_email', jwtWithAsanaEmail, { httpOnly: true })
         .redirect(FRONTEND_URL!);
     }
   } catch (error) {
     throw new Error(error);
   }
+});
+
+/*
+  Sends 204 code if user found. Otherwise sends 401
+*/
+router.get('/session-check', (req: Request, res: Response) => {
+  if ('asana_email' in req.cookies) {
+    res.status(204).send();
+  }
+
+  res.status(401).send();
 });
 
 export default router;
