@@ -102,4 +102,14 @@ router.get('/session-check', (req: Request, res: Response) => {
   res.status(401).send();
 });
 
+router.get('/log-out', (req: Request, res: Response) => {
+  if ('asana_email' in req.cookies) {
+    res.clearCookie('asana_email');
+
+    res.status(204).send();
+  }
+
+  res.status(200).json({ message: 'no asana_email cookie found' });
+});
+
 export default router;

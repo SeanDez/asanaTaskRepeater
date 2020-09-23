@@ -7,6 +7,7 @@ import { Client as PGClient, QueryResult } from 'pg';
 
 import { App_User } from './shared/IApp_User';
 import oAuthRouter from './authenticate/router';
+import accountDataRouter from './accountData/router';
 
 require('dotenv').config();
 
@@ -53,10 +54,8 @@ server
   .use(corsConfigured)
   .use(cookieParser())
   .use(Express.json())
-  // .use(expressSession(expressSessionOptions))
-  .use(passport.initialize())
-  .use(passport.session())
-  .use('/oauth', oAuthRouter);
+  .use('/oauth', oAuthRouter)
+  .use('/account-data', accountDataRouter);
 
 server.listen(Number(process.env.SERVER_PORT), () => {
   /* eslint-disable no-console */
