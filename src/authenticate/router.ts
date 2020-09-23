@@ -1,13 +1,18 @@
 /* eslint-disable no-unused-vars */
 import dotenv from 'dotenv';
+import 'es6-promise';
+import 'isomorphic-fetch';
 import { Router, Request, Response } from 'express';
 import jsonwebtoken from 'jsonwebtoken';
 
 import passportWithAsanaStrategy from './asanaStrategy';
+import EGrantTypes from './EGrantTypes';
 import { IEncryptedUserTableData } from './encryptedUserCreds';
 
 dotenv.config();
-const { FRONTEND_URL, JWT_SECRET } = process.env;
+const {
+  FRONTEND_URL, JWT_SECRET, ASANA_CLIENT_ID, ASANA_CLIENT_SECRET, ASANA_HTTPS_REDIRECT_URL,
+} = process.env;
 
 const router = Router();
 
@@ -19,64 +24,41 @@ interface AuthenticatedRequest extends Request {
   user?: User
 }
 
+const tokenExchangeEndpoint = 'https://app.asana.com/-/oauth_token';
+
 // -------------- All of these routes are nested under /oauth
 
 /*
-  This route is hit after the user logs in (or grants scopes initally)
-
-  It should send back a 204 or 401
+  Receives the auth code. Handles initial token exchange
+  Also finds or creates a new user locally
 */
-router.get(
-  '/callback',
-  passportWithAsanaStrategy.authenticate('Asana'),
-  (req: Request, res: Response) => {
-    if (req.user) { res.status(204).send(); }
+router.get('/receives-auth-code', async (req: Request, res: Response) => {
+  const requestOptions = {
+    method: 'post',
+    mode: 'cors' as 'cors',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+      accept: 'application/json',
+    },
+    body: JSON.stringify({
+      client_id: ASANA_CLIENT_ID,
+      redirect_uri: ASANA_HTTPS_REDIRECT_URL,
+      response_type: EGrantTypes.authCode,
+      state: req.query.state,
+    }),
+  };
 
-    res.status(401).json({ message: 'Auth middleware failed to return a user inside /oauth/callback' });
-    // send back a jwt
-    // jwt has the asana_id and is signed
-    // const jwt = jsonwebtoken.sign((req.user as { asana_id: string }).asana_id, JWT_SECRET!);
+  try {
+    const tokenEndpointResponse = await fetch(tokenExchangeEndpoint, requestOptions);
 
-  //   res
-  //     .cookie('asanaIdJwt', jwt)
-  //     .status(200)
-  //     .redirect(FRONTEND_URL!);
-  },
-);
+    const tokenData = await tokenEndpointResponse.json();
 
-/*
-  Determines if there is a valid cookie / JWT
+    const pausePoint = tokenData;
 
-  If there, it is assumed valid
-*/
-router.get('/cookieCheck', (req: Request, res: Response) => {
-  const { asanaIdJwt } = req.cookies;
-
-  if (typeof asanaIdJwt === 'undefined') {
-    res.status(401).send();
+    // save to db
+  } catch (error) {
+    throw new Error(error);
   }
-
-  res.status(204).send();
 });
-
-/*
-  Sends back user's account data after user has passed authentication
-
-  account data includes settings and repeat_rules
-*/
-router.get('/accountData', (req: Request, res: Response) => {
-
-});
-
-router.get('/logout', (req: Request, res: Response) => {
-  req.logout();
-});
-
-/*
-  passport middleware redirects to the scope grant page
-
-  thus no route handler callback
-*/
-router.get('/', passportWithAsanaStrategy.authenticate('Asana'));
 
 export default router;
