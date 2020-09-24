@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.0.0",
+    "build-url": "^6.0.1",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
@@ -30,6 +31,7 @@
     "passport-asana": "0.0.1",
     "pg": "^8.3.0",
     "pg-promise": "^10.6.1",
+    "qs": "^6.9.4",
     "react-router-dom": "^5.2.0",
     "simple-encryptor": "^4.0.0",
     "ts-jest": "^26.2.0",
@@ -52,6 +54,7 @@
     "@types/passport": "^1.0.4",
     "@types/pg": "^7.14.4",
     "@types/pg-promise": "^5.4.3",
+    "@types/qs": "^6.9.5",
     "@types/react-router-dom": "^5.1.5",
     "@typescript-eslint/eslint-plugin": "^3.9.0",
     "@typescript-eslint/parser": "^3.9.0",

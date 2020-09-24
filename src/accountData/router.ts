@@ -11,9 +11,9 @@ router.get('/all', (req: Request, res: Response) => {
   // grab all local repeat_rule's
 
   try {
-    // get the saved app_user data
     // check if the current access token is good. if not get a new token
-    // 
+    // get the locally saved repeat_rules
+    // get the saved app_user data
 
   } catch (error) {
     throw new Error(error);

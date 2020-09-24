@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
 import dotenv from 'dotenv';
-import Encryptor from 'simple-encryptor';
 import 'es6-promise';
-import 'isomorphic-fetch';
 import { Router, Request, Response } from 'express';
+import 'isomorphic-fetch';
 import jsonwebtoken from 'jsonwebtoken';
+import qs from 'qs';
+import Encryptor from 'simple-encryptor';
+import buildUrl from 'build-url';
 
 import passportWithAsanaStrategy from './asanaStrategy';
 import { pgOptioned, pgConfigured } from '../shared/database';
@@ -45,11 +47,12 @@ router.get('/receives-auth-code', async (req: Request, res: Response) => {
       'content-type': 'application/x-www-form-urlencoded',
       accept: 'application/json',
     },
-    body: JSON.stringify({
+    body: qs.stringify({
       client_id: ASANA_CLIENT_ID,
       client_secret: ASANA_CLIENT_SECRET,
       redirect_uri: ASANA_HTTPS_REDIRECT_URL,
-      response_type: EGrantTypes.authCode,
+      grant_type: EGrantTypes.authCode,
+      code: req.query.code,
       state: req.query.state,
     }),
   };
@@ -59,33 +62,34 @@ router.get('/receives-auth-code', async (req: Request, res: Response) => {
 
     const tokenData = await tokenEndpointResponse.json();
 
-    // todo patch this with actual property access after a test request
-    const {
-      email: asana_email, gid, name: display_name, refresh_token, access_token,
-    } = tokenData._json;
+    const { refresh_token, access_token } = tokenData;
+    const { email: asana_email, gid, name: display_name } = tokenData.data;
 
     // see if current user exists
-    const checkUserQuery = 'SELECT * FROM app_user WHERE CAST(asana_email AS TEXT) = CAST($1 AS TEXT);';
-    const userResult = await pgConfigured.oneOrNone(checkUserQuery, asana_email);
+    const checkUserQuery = 'SELECT asana_email FROM app_user WHERE CAST(asana_email AS TEXT) = CAST($1 AS TEXT);';
+    let usersAsanaEmail = await pgConfigured.oneOrNone(checkUserQuery, asana_email);
 
     // if no user, insert new user
-    if (checkUserQuery === null) {
+    if (usersAsanaEmail === null) {
       const insertUserQuery = 'INSERT INTO app_user (gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted) VALUES ($1, $2, $3, $4, $5) RETURNING asana_email;';
       const refresh_token_encrypted = encryptor.encrypt(refresh_token);
       const access_token_encrypted = encryptor.encrypt(access_token);
 
-      const insertedUserAsanaEmail = await pgConfigured.one(insertUserQuery,
+      usersAsanaEmail = await pgConfigured.one(insertUserQuery,
         [gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted]);
-
-      // setup a jwt
-      // put it in a cookie and respond
-      const jwtWithAsanaEmail = jsonwebtoken.sign(insertedUserAsanaEmail, JWT_SECRET!);
-
-      res
-        .status(204)
-        .cookie('asana_email', jwtWithAsanaEmail, { httpOnly: true })
-        .redirect(FRONTEND_URL!);
     }
+
+    // setup a jwt
+    // put it in a cookie and respond
+    const jwtWithAsanaEmail = jsonwebtoken.sign(usersAsanaEmail, JWT_SECRET!);
+
+    const reactUrlWithJwtQueryParam = buildUrl(FRONTEND_URL!, {
+      queryParams: {
+        asana_email: jwtWithAsanaEmail,
+      },
+    });
+
+    res.redirect(reactUrlWithJwtQueryParam);
   } catch (error) {
     throw new Error(error);
   }
