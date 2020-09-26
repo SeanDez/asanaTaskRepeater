@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS "app_user" (
   "asana_email" TEXT not null unique,
   "display_name" TEXT,
   "refresh_token_encrypted" TEXT not null,
-  "access_token_encrypted" TEXT
+  "access_token_encrypted" TEXT,
+  "state" TEXT
 );
 
 /*

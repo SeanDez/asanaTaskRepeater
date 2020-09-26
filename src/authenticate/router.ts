@@ -10,7 +10,7 @@ import buildUrl from 'build-url';
 
 import passportWithAsanaStrategy from './asanaStrategy';
 import { pgOptioned, pgConfigured } from '../shared/database';
-import EGrantTypes from './EGrantTypes';
+import EGrantTypes from '../shared/EGrantTypes';
 import { IEncryptedUserTableData } from './encryptedUserCreds';
 
 dotenv.config();
@@ -40,6 +40,8 @@ const tokenExchangeEndpoint = 'https://app.asana.com/-/oauth_token';
   Also finds or creates a new user locally, and responds with a jwt cookie
 */
 router.get('/receives-auth-code', async (req: Request, res: Response) => {
+  const { state } = req.query;
+
   const requestOptions = {
     method: 'post',
     mode: 'cors' as 'cors',
@@ -71,49 +73,41 @@ router.get('/receives-auth-code', async (req: Request, res: Response) => {
 
     // if no user, insert new user
     if (usersAsanaEmail === null) {
-      const insertUserQuery = 'INSERT INTO app_user (gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted) VALUES ($1, $2, $3, $4, $5) RETURNING asana_email;';
+      const insertUserQuery = 'INSERT INTO app_user (gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted, state) VALUES ($1, $2, $3, $4, $5, $6) RETURNING asana_email;';
       const refresh_token_encrypted = encryptor.encrypt(refresh_token);
       const access_token_encrypted = encryptor.encrypt(access_token);
 
       usersAsanaEmail = await pgConfigured.one(insertUserQuery,
-        [gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted]);
+        [gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted, state]);
     }
 
     // setup a jwt
-    // put it in a cookie and respond
+    // put it in a cookie, encrypt, and respond
     const jwtWithAsanaEmail = jsonwebtoken.sign(usersAsanaEmail, JWT_SECRET!);
+    const encryptedJwt = encryptor.encrypt(jwtWithAsanaEmail);
 
-    const reactUrlWithJwtQueryParam = buildUrl(FRONTEND_URL!, {
+    const reactUrlWithEncryptedJwt = buildUrl(FRONTEND_URL!, {
       queryParams: {
-        asana_email: jwtWithAsanaEmail,
+        asana_email: encryptedJwt,
       },
     });
 
-    res.redirect(reactUrlWithJwtQueryParam);
+    res.redirect(reactUrlWithEncryptedJwt);
   } catch (error) {
     throw new Error(error);
   }
 });
 
-/*
-  Sends 204 code if user found. Otherwise sends 401
-*/
-router.get('/session-check', (req: Request, res: Response) => {
-  if ('asana_email' in req.cookies) {
-    res.status(204).send();
-  }
-
-  res.status(401).send();
-});
-
 router.get('/log-out', (req: Request, res: Response) => {
   if ('asana_email' in req.cookies) {
     res.clearCookie('asana_email');
-
-    res.status(204).send();
   }
 
-  res.status(200).json({ message: 'no asana_email cookie found' });
+  if ('asana_state' in req.cookies) {
+    res.clearCookie('asana_state');
+  }
+
+  res.status(204).send();
 });
 
 export default router;
