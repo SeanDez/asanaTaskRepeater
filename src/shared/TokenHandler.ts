@@ -4,8 +4,8 @@ import 'isomorphic-fetch';
 import qs from 'qs';
 import Encryptor from 'simple-encryptor';
 
-import { pgConfigured } from '../shared/database';
-import EGrantTypes from '../shared/EGrantTypes';
+import { pgConfigured } from './database';
+import EGrantTypes from './EGrantTypes';
 
 dotenv.config();
 const {
@@ -29,6 +29,8 @@ async function accessTokenIsValid(suspectToken: string): Promise<boolean> {
     method: 'get',
     mode: 'cors' as 'cors',
     headers: {
+      'content-type': 'application/json',
+      accept: 'application/json',
       authorization: `Bearer ${suspectToken}`,
     },
   };
@@ -47,34 +49,18 @@ async function accessTokenIsValid(suspectToken: string): Promise<boolean> {
   }
 }
 
-export default class Verify {
+export default class TokenHandler {
   constructor(private asana_email: string) {
     this.asana_email = asana_email;
   }
 
-  /*
-    returns true if database state value matches front end (argument) state value.
-    Else returns false
-  */
-  public async stateMatches(frontEndState: string): Promise<boolean> {
-    const selectStateQuery = 'SELECT state from app_user WHERE asana_email = $1';
-
-    try {
-      const storedState = await pgConfigured.oneOrNone(selectStateQuery, this.asana_email);
-
-      return storedState === frontEndState;
-    } catch (error) {
-      throw new Error(error);
-    }
-  }
-
   public async getValidAuthToken(): Promise<string> {
-    const currentAccessToken: string = await this.getStoredToken();
+    const currentAccessToken: string = await this.getStoredToken(tokenTypes.access);
     const storedTokenIsValid: boolean = await accessTokenIsValid(currentAccessToken);
 
     if (storedTokenIsValid === false) {
       const newToken = await this.getNewAccessToken();
-      await this.storeAccessToken(newToken);
+      await this.storeToken(tokenTypes.access, newToken);
       return newToken;
     }
 
@@ -84,7 +70,7 @@ export default class Verify {
   /*
     Uses the stored refresh token to get a new access token
   */
-  private async getNewAccessToken(redirectUrl: string): Promise<string> {
+  private async getNewAccessToken(): Promise<string> {
     try {
       // get stored refresh token
       const refresh_token_decrypted = await this.getStoredToken(tokenTypes.refresh);
@@ -101,7 +87,7 @@ export default class Verify {
         body: qs.stringify({
           client_id: ASANA_CLIENT_ID,
           client_secret: ASANA_CLIENT_SECRET,
-          redirect_uri: redirectUrl,
+          redirect_uri: ASANA_HTTPS_REDIRECT_URL,
           grant_type: EGrantTypes.refreshToken,
           refresh_token: refresh_token_decrypted,
         }),
@@ -111,18 +97,20 @@ export default class Verify {
       const tokenData = await response.json();
 
       const { access_token } = tokenData;
-      const access_token_encrypted = encryptor.encrypt(access_token);
-      const { gid, name: display_name } = tokenData.data;
-
-      // overwrite the current user record with updated info
-      const insertUserQuery = 'UPDATE app_user SET gid = $1, asana_email, display_name = $2, access_token_encrypted = $3 WHERE asana_email = $4;';
-
-      await pgConfigured.one(insertUserQuery,
-        [gid, display_name, access_token_encrypted, this.asana_email]);
       return access_token;
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  private async storeToken(tokenType: tokenTypes, tokenValue: string) {
+    const encryptedToken = encryptor.encrypt(tokenValue);
+    // overwrite the current user record with updated info
+    const insertUserQuery = `UPDATE app_user SET ${tokenType} = $1 WHERE asana_email = $2;`;
+
+    await pgConfigured.none(insertUserQuery,
+      [encryptedToken, this.asana_email]);
+    return encryptedToken;
   }
 
   private async getStoredToken(tokenType: tokenTypes): Promise<string> {
