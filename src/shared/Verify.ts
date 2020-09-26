@@ -115,7 +115,7 @@ export default class Verify {
       const { gid, name: display_name } = tokenData.data;
 
       // overwrite the current user record with updated info
-      const insertUserQuery = 'UPDATE TABLE app_user SET gid = $1, asana_email, display_name = $2, access_token_encrypted = $3 WHERE asana_email = $4;';
+      const insertUserQuery = 'UPDATE app_user SET gid = $1, asana_email, display_name = $2, access_token_encrypted = $3 WHERE asana_email = $4;';
 
       await pgConfigured.one(insertUserQuery,
         [gid, display_name, access_token_encrypted, this.asana_email]);
