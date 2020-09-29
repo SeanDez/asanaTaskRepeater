@@ -48,6 +48,7 @@ const expressSessionOptions = {
 
 const corsConfigured = cors({
   credentials: true,
+  origin: true,
 });
 
 server
