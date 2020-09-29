@@ -65,30 +65,31 @@ router.get('/receives-auth-code', async (req: Request, res: Response) => {
     const tokenData = await tokenEndpointResponse.json();
 
     const { refresh_token, access_token } = tokenData;
-    const { email: asana_email, gid, name: display_name } = tokenData.data;
+    const { email: asanaEmailFromApi, gid, name: display_name } = tokenData.data;
 
     // see if current user exists
-    const checkUserQuery = 'SELECT asana_email FROM app_user WHERE CAST(asana_email AS TEXT) = CAST($1 AS TEXT);';
-    let usersAsanaEmail = await pgConfigured.oneOrNone(checkUserQuery, asana_email);
+    const checkUserQuery = 'SELECT asana_email FROM app_user WHERE asana_email = $1;';
+    let asanaEmailFromDb = await pgConfigured.oneOrNone(checkUserQuery, asanaEmailFromApi);
 
     // if no user, insert new user
-    if (usersAsanaEmail === null) {
+    if (asanaEmailFromDb === null) {
       const insertUserQuery = 'INSERT INTO app_user (gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted, state) VALUES ($1, $2, $3, $4, $5, $6) RETURNING asana_email;';
       const refresh_token_encrypted = encryptor.encrypt(refresh_token);
       const access_token_encrypted = encryptor.encrypt(access_token);
 
-      usersAsanaEmail = await pgConfigured.one(insertUserQuery,
-        [gid, asana_email, display_name, refresh_token_encrypted, access_token_encrypted, state]);
+      asanaEmailFromDb = await pgConfigured.one(insertUserQuery,
+        [gid, asanaEmailFromApi, display_name,
+          refresh_token_encrypted, access_token_encrypted, state]);
     }
 
     // setup a jwt
     // put it in a cookie, encrypt, and respond
-    const jwtWithAsanaEmail = jsonwebtoken.sign(usersAsanaEmail, JWT_SECRET!);
+    const jwtWithAsanaEmail = jsonwebtoken.sign(asanaEmailFromDb, JWT_SECRET!);
     const encryptedJwt = encryptor.encrypt(jwtWithAsanaEmail);
 
     const reactUrlWithEncryptedJwt = buildUrl(FRONTEND_URL!, {
       queryParams: {
-        asana_email: encryptedJwt,
+        asana_email_encrypted: encryptedJwt,
       },
     });
 
