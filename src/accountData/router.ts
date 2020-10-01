@@ -22,6 +22,9 @@ router.get('/all', async (req: Request, res: Response) => {
     // check if the current access token is good. if not get a new token
     // get the locally saved repeat_rules
     // get the saved app_user data
+    console.log('req.cookies', req.cookies);
+    console.log('number of cookies keys', Object.keys(req.cookies).length);
+
     const stateHandler = new StateHandler(asanaEmailDecrypted);
     const statesMatch: boolean = await stateHandler.frontEndMatchesStored(frontEndState);
 
@@ -34,6 +37,8 @@ router.get('/all', async (req: Request, res: Response) => {
 
       res.status(200).json({ projectBriefs });
     }
+
+    res.status(401).json({ error: 'statesMatch was falsy' });
   } catch (error) {
     throw new Error(error);
   }
