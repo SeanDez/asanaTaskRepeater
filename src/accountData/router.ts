@@ -15,32 +15,22 @@ const encryptor = Encryptor.createEncryptor(ENCRYPTOR_SECRET!);
 const router = Router();
 
 router.get('/all', async (req: Request, res: Response) => {
-  const { asana_email_encrypted, asana_state: frontEndState } = req.cookies;
+  const asana_email_encrypted = req.get('asana_email_encrypted') as string;
   const asanaEmailDecrypted: string = encryptor.decrypt(asana_email_encrypted) as string;
 
   try {
     // check if the current access token is good. if not get a new token
-    // get the locally saved repeat_rules
+    // todo get the locally saved repeat_rules
     // get the saved app_user data
-    console.log('req.cookies', req.cookies);
-    console.log('number of cookies keys', Object.keys(req.cookies).length);
+    const tokenHandler = new TokenHandler(asanaEmailDecrypted, res);
+    const accessToken: string = await tokenHandler.getValidAuthToken();
 
-    const stateHandler = new StateHandler(asanaEmailDecrypted);
-    const statesMatch: boolean = await stateHandler.frontEndMatchesStored(frontEndState);
+    const asanaRequest = new AsanaRequest(accessToken);
+    const projectBriefs = await asanaRequest.get('/projects');
 
-    if (statesMatch) {
-      const tokenHandler = new TokenHandler(asanaEmailDecrypted);
-      const accessToken: string = await tokenHandler.getValidAuthToken();
-
-      const asanaRequest = new AsanaRequest(accessToken);
-      const projectBriefs = await asanaRequest.get('/projects');
-
-      res.status(200).json({ projectBriefs });
-    }
-
-    res.status(401).json({ error: 'statesMatch was falsy' });
-  } catch (error) {
-    throw new Error(error);
+    res.status(200).json({ projectBriefs });
+  } catch ({ name, message }) {
+    res.status(500).json({ name, message });
   }
 });
 

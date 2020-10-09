@@ -1,3 +1,4 @@
+import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import Express from 'express';
@@ -52,6 +53,8 @@ const corsConfigured = cors({
 });
 
 server
+  .use(bodyParser.urlencoded({ extended: false }))
+  .use(bodyParser.json())
   .use(corsConfigured)
   .use(cookieParser())
   .use(Express.json())
