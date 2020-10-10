@@ -3,14 +3,12 @@ import dotenv from 'dotenv';
 import 'es6-promise';
 import { Router, Request, Response } from 'express';
 import 'isomorphic-fetch';
+import moment from 'moment';
 import Encryptor from 'simple-encryptor';
 
 import { apiUrlBase } from '../shared/globals';
 import addAuthToken from '../authTokenHandling/middleware';
-import { RequestWithToken } from '../authTokenHandling/RequestWithToken';
 import AsanaRequest from '../shared/AsanaRequest';
-import StateHandler from '../shared/StateHandler';
-import TokenHandler from '../authTokenHandling/TokenHandler';
 
 dotenv.config();
 const { ENCRYPTOR_SECRET } = process.env;
@@ -31,13 +29,16 @@ router.get('/all', addAuthToken, async (req: Request, res: Response) => {
     const asanaRequest = new AsanaRequest(req.verifiedAccessToken);
     const projectCompacts: ProjectCompact[] = (await asanaRequest.get('/projects')).data;
 
+    const ninetyDaysBack = moment().subtract(90, 'days').format('YYYY-MM-DD[T]HH:MM:[00.000Z]');
+
     const taskPromises: Promise<any[]>[] = projectCompacts
       .map(async (projectBrief: ProjectCompact) => {
         const taskUrl = buildUrl(apiUrlBase, {
           path: '/tasks',
           queryParams: {
             project: projectBrief.gid,
-            opt_fields: ['notes', 'tags', 'projects', 'due_on', 'this.projects.name'].join(','),
+            completed_since: ninetyDaysBack, // '2019-09-15T02:06:58.147Z'
+            opt_fields: ['name', 'gid', 'notes', 'tags', 'projects', 'due_on', 'this.projects.name'].join(','),
           },
         });
 
@@ -56,6 +57,8 @@ router.get('/all', addAuthToken, async (req: Request, res: Response) => {
     const tasksResolved = await Promise.all(taskPromises);
     // array.flat() doesn't work in ts-node
     const flattenedTaskList = [].concat(...tasksResolved as any[]);
+
+    // remove all records older than 90 days
 
     res.status(200).json({
       projectCompacts,
