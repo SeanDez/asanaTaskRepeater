@@ -6,9 +6,9 @@ import 'isomorphic-fetch';
 import qs from 'qs';
 import Encryptor from 'simple-encryptor';
 
-import { pgConfigured } from './database';
-import EGrantTypes from './EGrantTypes';
-import envTyped from './envVariablesTyped';
+import { pgConfigured } from '../shared/database';
+import EGrantTypes from '../shared/EGrantTypes';
+import envTyped from '../shared/envVariablesTyped';
 
 dotenv.config();
 const {

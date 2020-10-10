@@ -18,7 +18,7 @@ export default class AsanaRequest {
     this.decryptedAccessToken = decryptedAccessToken;
   }
 
-  public async post(urlPath: string, options: RequestOptionsWithBody): Promise<object | void> {
+  public async post(urlPath: string, options: RequestOptionsWithBody): Promise<any> {
     const fullEndpointUrl = this.buildEndpointUrl(urlPath, options.queryParams);
 
     const postBody = JSON.stringify(Object(options.body));
@@ -32,7 +32,9 @@ export default class AsanaRequest {
     }
   }
 
-  public async get(urlPath: string, options?: GetRequestOptions): Promise<object | void> {
+  public async get(
+    urlPath: string, options?: GetRequestOptions,
+  ): Promise<any> {
     const fullEndpointUrl = this.buildEndpointUrl(urlPath, options?.queryParams);
 
     try {
