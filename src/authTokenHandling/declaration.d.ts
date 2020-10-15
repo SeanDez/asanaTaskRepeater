@@ -14,6 +14,6 @@
 
 declare namespace Express {
   interface Request {
-    verifiedAccessToken: import('./RequestWithToken');
+    verifiedAccessToken: import('./IRequestWithToken');
   }
 }

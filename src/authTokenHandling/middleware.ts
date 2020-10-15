@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import TokenHandler from './TokenHandler';
 import envTyped from '../shared/envVariablesTyped';
-import { RequestWithToken } from './RequestWithToken';
+import { RequestWithToken } from './IRequestWithToken';
 
 const { ENCRYPTOR_SECRET } = envTyped;
 

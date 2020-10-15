@@ -13,16 +13,16 @@ CREATE TABLE IF NOT EXISTS "app_user" (
   "state" TEXT
 );
 
-/*
+
 CREATE TABLE IF NOT EXISTS "repeat_rule" (
-  "id" SERIAL primary key,
+  "local_id" SERIAL primary key,
   "project_gid" TEXT not null,
   "task_gid" TEXT not null,
+  "repeat_interval" SMALLINT,
+  "repeat_unit" TEXT, -- days, weeks, months
   "start_timestamp" TIMESTAMP not null,
-  "repeat_number" SMALLINT,
-  "repeat_unit" TEXT, -- days, weeks, etc
-  "app_user_id" INTEGER references app_user (id) on delete cascade
-)
-*/
+  "app_user_id" INTEGER references app_user (local_id) on delete cascade
+);
+
 
 COMMIT;
