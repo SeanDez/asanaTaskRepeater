@@ -8,7 +8,7 @@ import { Client as PGClient, QueryResult } from 'pg';
 import { App_User } from './shared/IApp_User';
 import oAuthRouter from './authenticate/router';
 import accountDataRouter from './accountData/router';
-import repeatRules from './repeatRules/router';
+import repeatRulesRouter from './repeatRules/router';
 
 require('dotenv').config();
 
@@ -31,7 +31,7 @@ server
   .use(Express.json())
   .use('/oauth', oAuthRouter)
   .use('/account-data', accountDataRouter)
-  .use('/repeat-rules', repeatRules);
+  .use('/repeat-rules', repeatRulesRouter);
 
 server.listen(Number(process.env.SERVER_PORT), () => {
   /* eslint-disable no-console */
