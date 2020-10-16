@@ -9,6 +9,7 @@ import Encryptor from 'simple-encryptor';
 import { apiUrlBase } from '../shared/globals';
 import addAuthToken from '../authTokenHandling/middleware';
 import AsanaRequest from '../shared/AsanaRequest';
+import { tryToRespondWithError } from '../errorHandling/respond';
 
 dotenv.config();
 const { ENCRYPTOR_SECRET } = process.env;
@@ -64,8 +65,8 @@ router.get('/all', addAuthToken, async (req: Request, res: Response) => {
       projectCompacts,
       tasksEnhanced: flattenedTaskList,
     });
-  } catch ({ name, message }) {
-    res.status(500).json({ name, message });
+  } catch (error) {
+    tryToRespondWithError(error, res);
   }
 });
 

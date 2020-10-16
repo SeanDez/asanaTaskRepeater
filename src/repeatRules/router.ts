@@ -13,7 +13,7 @@ router.post('/add', attachAppUserId, async (req: Request, res: Response) => {
     taskGid: task_gid,
     timeInterval: repeat_interval,
     timeUnit: repeat_unit,
-    startDate: start_timestamp, // todo on the FE,include a timezone.
+    startDateTime: start_timestamp, // todo on the FE,include a timezone.
   } = req.body;
 
   const insertQuery = 'INSERT INTO repeat_rule (project_gid, task_gid, repeat_interval, repeat_unit, start_timestamp, app_user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;';
@@ -24,12 +24,55 @@ router.post('/add', attachAppUserId, async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    res.status(500).json(error);
+    throw new Error(error);
   }
 });
 
-// router.post('/delete', async (req: Request, res: Response) => {
+/*
+  Get all repeat rules for a user
+*/
+router.get('/all', attachAppUserId, async (req: Request, res: Response) => {
+  const selectAllQuery = 'SELECT * FROM repeat_rule WHERE app_user_id = $1;';
 
-// });
+  try {
+    const dbResult = await pgConfigured.manyOrNone(selectAllQuery, req.app_user_id);
+    res.status(200).json(dbResult);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+/*
+  updates a single rule
+*/
+router.patch('/update', async (req: Request, res: Response) => {
+  const updateQuery = 'UPDATE repeat_rule SET $1 = $2 WHERE local_id = $3 AND app_user_id = $4';
+  const { updateColumn, newValue, localId } = req.body;
+
+  try {
+    await pgConfigured.none(updateQuery, [updateColumn, newValue, localId, req.app_user_id]);
+
+    res.status(200).send();
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+/*
+  deletes a repeat rule
+
+  app_user_id condition is for verification only
+*/
+router.delete('/delete', async (req: Request, res: Response) => {
+  const deleteByLocalIdQuery = 'DELETE FROM repeat_rule WHERE local_id = $1 AND app_user_id = $2';
+
+  try {
+    await pgConfigured.none(deleteByLocalIdQuery, [req.body.localId, req.app_user_id]);
+
+    res.status(200).send();
+  } catch (error) {
+    throw new Error(error);
+  }
+});
 
 export default router;

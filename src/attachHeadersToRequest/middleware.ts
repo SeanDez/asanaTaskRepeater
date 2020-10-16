@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Encryptor from 'simple-encryptor';
 import envTyped from '../shared/envVariablesTyped';
 import { pgConfigured } from '../shared/database';
+import { tryToRespondWithError } from '../errorHandling/respond';
 
 const { ENCRYPTOR_SECRET } = envTyped;
 
@@ -39,6 +40,6 @@ export async function attachAppUserId(req: Request, res: Response, next: NextFun
     req.app_user_id = app_user_id;
     next();
   } catch (error) {
-    throw new Error(error);
+    tryToRespondWithError(error, res);
   }
 }
