@@ -7,7 +7,7 @@ const router = Router();
 /*
   Add a new repeat rule to the database.
 */
-router.post('/add', attachAppUserId, async (req: Request, res: Response) => {
+router.post('/', attachAppUserId, async (req: Request, res: Response) => {
   const {
     projectGid: project_gid,
     projectName: project_name,
@@ -48,14 +48,14 @@ router.get('/all', attachAppUserId, async (req: Request, res: Response) => {
 /*
   updates a single rule
 */
-router.patch('/update', async (req: Request, res: Response) => {
+router.patch('/', attachAppUserId, async (req: Request, res: Response) => {
   const updateQuery = 'UPDATE repeat_rule SET $1 = $2 WHERE local_id = $3 AND app_user_id = $4';
   const { updateColumn, newValue, localId } = req.body;
 
   try {
     await pgConfigured.none(updateQuery, [updateColumn, newValue, localId, req.app_user_id]);
 
-    res.status(200).send();
+    res.status(204).send();
   } catch (error) {
     throw new Error(error);
   }
@@ -66,13 +66,13 @@ router.patch('/update', async (req: Request, res: Response) => {
 
   app_user_id condition is for verification only
 */
-router.delete('/delete', async (req: Request, res: Response) => {
+router.delete('/', attachAppUserId, async (req: Request, res: Response) => {
   const deleteByLocalIdQuery = 'DELETE FROM repeat_rule WHERE local_id = $1 AND app_user_id = $2';
 
   try {
     await pgConfigured.none(deleteByLocalIdQuery, [req.body.localId, req.app_user_id]);
 
-    res.status(200).send();
+    res.status(204).send();
   } catch (error) {
     throw new Error(error);
   }
