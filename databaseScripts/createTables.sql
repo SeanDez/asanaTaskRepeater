@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS "app_user" (
 CREATE TABLE IF NOT EXISTS "repeat_rule" (
   "local_id" SERIAL primary key,
   "project_gid" TEXT not null,
+  "project_name" TEXT not null default "placeholder";
   "task_gid" TEXT not null,
+  "task_name" TEXT not null default "placeholder";
   "repeat_interval" SMALLINT,
   "repeat_unit" TEXT, -- days, weeks, months
   "start_timestamp" TIMESTAMP not null,

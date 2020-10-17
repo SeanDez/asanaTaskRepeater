@@ -10,17 +10,20 @@ const router = Router();
 router.post('/add', attachAppUserId, async (req: Request, res: Response) => {
   const {
     projectGid: project_gid,
+    projectName: project_name,
     taskGid: task_gid,
+    taskName: task_name,
     timeInterval: repeat_interval,
     timeUnit: repeat_unit,
     startDateTime: start_timestamp, // todo on the FE,include a timezone.
   } = req.body;
 
-  const insertQuery = 'INSERT INTO repeat_rule (project_gid, task_gid, repeat_interval, repeat_unit, start_timestamp, app_user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;';
+  const insertQuery = 'INSERT INTO repeat_rule (project_gid, task_gid, repeat_interval, repeat_unit, start_timestamp, app_user_id, project_name, task_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;';
 
   try {
     await pgConfigured.one(insertQuery,
-      [project_gid, task_gid, repeat_interval, repeat_unit, start_timestamp, req.app_user_id]);
+      [project_gid, task_gid, repeat_interval,
+        repeat_unit, start_timestamp, req.app_user_id, project_name, task_name]);
 
     res.status(204).send();
   } catch (error) {
