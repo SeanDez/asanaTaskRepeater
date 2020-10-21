@@ -24,9 +24,6 @@ interface ProjectCompact { gid: string, name: string, resource_type: string }
 */
 router.get('/all', addAuthToken, async (req: Request, res: Response) => {
   try {
-    // todo get the locally saved repeat_rules
-    // get the saved app_user data
-
     const asanaRequest = new AsanaRequest(req.verifiedAccessToken);
     const projectCompacts: ProjectCompact[] = (await asanaRequest.get('/projects')).data;
 

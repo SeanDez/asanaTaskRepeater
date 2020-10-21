@@ -15,7 +15,7 @@ router.post('/', attachAppUserId, async (req: Request, res: Response) => {
     taskName: task_name,
     timeInterval: repeat_interval,
     timeUnit: repeat_unit,
-    startDateTime: start_timestamp, // todo on the FE,include a timezone.
+    startDateTime: start_timestamp,
   } = req.body;
 
   const insertQuery = 'INSERT INTO repeat_rule (project_gid, task_gid, repeat_interval, repeat_unit, start_timestamp, app_user_id, project_name, task_name) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;';

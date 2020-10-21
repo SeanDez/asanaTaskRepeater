@@ -25,7 +25,7 @@ enum tokenTypes {
 /*
   Does a test request to see if a valid response returns
 */
-async function accessTokenIsValid(suspectToken: string, res: Response): Promise<boolean> {
+async function accessTokenIsValid(suspectToken: string): Promise<boolean> {
   const testEndpoint = 'https://app.asana.com/api/1.0/users/me';
 
   const testRequestOptions = {
@@ -47,20 +47,18 @@ async function accessTokenIsValid(suspectToken: string, res: Response): Promise<
     }
 
     return false;
-  } catch ({ name, message }) {
-    res.status(500).json({ name, message });
-    throw new Error(`${name} - ${message}`);
+  } catch (error) {
+    throw new Error(error);
   }
 }
 
 export default class TokenHandler {
-  constructor(private asana_email: string, private res: Response) {
-    this.asana_email = asana_email;
-  }
+  // eslint-disable-next-line
+  constructor(private asana_email: string, private res?: Response) {}
 
   public async getValidAuthToken(): Promise<string> {
     const currentAccessToken: string = await this.getStoredToken(tokenTypes.access);
-    const storedTokenIsValid: boolean = await accessTokenIsValid(currentAccessToken, this.res);
+    const storedTokenIsValid: boolean = await accessTokenIsValid(currentAccessToken);
 
     if (storedTokenIsValid === false) {
       const newToken = await this.getNewAccessToken();
@@ -106,9 +104,8 @@ export default class TokenHandler {
 
       const { access_token } = tokenData;
       return access_token;
-    } catch ({ name, message }) {
-      this.res.status(500).json({ name, message });
-      throw new Error(`${name} - ${message}`);
+    } catch (error) {
+      throw new Error(error);
     }
   }
 

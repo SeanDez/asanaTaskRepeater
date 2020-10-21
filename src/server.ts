@@ -5,7 +5,7 @@ import Express from 'express';
 import expressSession from 'express-session';
 import { Client as PGClient, QueryResult } from 'pg';
 
-import { App_User } from './shared/IApp_User';
+import { App_User } from './shared/interfaces/IApp_User';
 import oAuthRouter from './authenticate/router';
 import accountDataRouter from './accountData/router';
 import repeatRulesRouter from './repeatRules/router';

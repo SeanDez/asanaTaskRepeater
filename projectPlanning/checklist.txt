@@ -1,10 +1,10 @@
 
 // invalid token by status code
-Refactor the TokenVerifier to check for invalid token status codes
+X Refactor the TokenVerifier to check for invalid token status codes
 
 // verification middleware
-fix the declaration file detection issue (typeRoots)
-refactor accountData/router to use the middleware code
+X fix the declaration file detection issue
+X refactor accountData/router to use the middleware code
 
 // add a new repeat rule to the database
 
@@ -13,11 +13,10 @@ X get tasks by project
 
 X get tags for each task
 
-// identify repeated tasks by tag
-
-// create a task, tagged as repeated
-
-// design a repeater rule by looping schedule
+// repeater creation
+identify repeated tasks by tag
+create a task, tagged as repeated
+design a repeater rule by looping schedule
 design an "already repeated" method
 
 
