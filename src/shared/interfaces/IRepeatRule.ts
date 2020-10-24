@@ -1,4 +1,4 @@
-export default interface IRepeatRules {
+export default interface IRepeatRule {
   local_id: number; // SERIAL primary key,
   project_gid: string; // TEXT not null,
   project_name: string // TEXT not null default "placeholder";

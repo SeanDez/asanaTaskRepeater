@@ -1,28 +1,24 @@
 import buildUrl from 'build-url';
+import lodash from 'lodash';
+import moment from 'moment';
+
 import { pgConfigured } from '../shared/database';
 import { apiUrlBase } from '../shared/globals';
 import envTyped from '../shared/envVariablesTyped';
 
-import IRepeatRules from '../shared/interfaces/IRepeatRules';
+import IRepeatRule from '../shared/interfaces/IRepeatRule';
 import ITask from '../shared/interfaces/ITask';
 import TokenHandler from '../authTokenHandling/TokenHandler';
+import { IUserCredentials } from './IUserCredentials';
 
 interface ITaskWithRepeatTimeStamp extends ITask {
   alreadyRepeated: boolean;
   repeatTimeStamp: string;
 }
 
-interface UserCredentials {
-  local_id: number;
-  asana_email: string;
-  gid: string;
-  refresh_token_encrypted: string;
-  access_token_encrypted: string;
-}
-
 interface UserTasksRules {
   userCredentials: UserCredentials,
-  rules: IRepeatRules[],
+  rules: IRepeatRule[],
   unfilteredTasks: ITask[],
   repeatedTasks?: ITask[]
 }
@@ -43,20 +39,18 @@ export async function repeatTasksForAll() {
         const { local_id, asana_email } = userCredentials;
 
         // get all repeat rules
-        const repeatRules: IRepeatRules[] = await getRules(local_id);
-
-        // X get all project gids  // repeatRules.project_gid
+        const repeatRules: IRepeatRule[] = await getRules(local_id);
 
         // get all tasks with matching projectGid and access token
         // retain only tasks that have been repeated
-        const tasksByProjectPromises = repeatRules.map(async ({ project_gid }: IRepeatRules) => {
+        const tasksByProjectPromises = repeatRules.map(async ({ project_gid }: IRepeatRule) => {
           const tokenHandler = new TokenHandler(asana_email);
           const verifiedAccessToken = await tokenHandler.getValidAuthToken();
 
           const allRepeatedTasksReshaped: ITaskWithRepeatTimeStamp[] = await fetchTasks(project_gid,
             verifiedAccessToken, filterOutUnrepeatedTasks);
 
-          // key to a project gid
+          // key to a project gid. // also add an access token
           const tasksAndprojectGid: ProjectWithTokenAndRepeatedTasks = {
             projectGid: project_gid,
             verifiedAccessToken,
@@ -66,7 +60,7 @@ export async function repeatTasksForAll() {
           return allRepeatedTasksReshaped;
         });
 
-        const tasksByProject = await Promise.all(tasksByProjectPromises);
+        const tasksWithProjectAndToken = await Promise.all(tasksByProjectPromises);
 
         
       });
@@ -90,7 +84,7 @@ async function getEveryonesUserCredentials(): Promise<UserCredentials[]> {
 
 /* Gets all repeat rules for a single user
 */
-async function getRules(appUserId: number): Promise<IRepeatRules[]> {
+async function getRules(appUserId: number): Promise<IRepeatRule[]> {
   const getRulesQuery = 'SELECT * FROM repeat_rule WHERE app_user_id = $1;';
 
   try {
@@ -184,24 +178,49 @@ function findAllCurrentRepeats(tasksAndRules: UserTasksRules[]) {
 
 }
 
-/* Detects which repeats should be there but are not
+function xx(y: string = '', z: number = 9) {
+  return 4;
+}
+
+/* Detects what repeats should be there
 */
-// function findMissingTasks(repeatRules: IRepeatRules[], repeatedTasks: ITask[]): MissingTask[] {
-// group tasks by original
+function getRecentTheoreticalDatesForRepeats(
+  timeFrameBackInDaysToScan: number = 7,
+  repeatIncrement: number,
+  repeatUnit: 'days' | 'weeks' | 'months',
+  startDate: string,
+  specificity: 'date' | 'dateTime' = 'date',
+): Array<moment.Moment> {
+  let beginning = moment(startDate);
+  let today = moment();
+  let cutoffDate = moment().subtract(timeFrameBackInDaysToScan, 'days');
 
-// compile list of dates for each original
+  // normalize the time if specificity is date only
+  if (specificity === 'date') {
+    beginning = beginning.startOf('day');
+    today = today.startOf('day');
+    cutoffDate = cutoffDate.startOf('day');
+  }
 
-// compile list of all dates original task should have
+  let datePointer: moment.Moment = moment(startDate);
+  const allValidRepeatDates = [];
+  while (datePointer.isSameOrBefore(today)) {
+    if (datePointer.isSameOrAfter(cutoffDate)) {
+      allValidRepeatDates.push(datePointer);
+    }
 
-// find missing repeat dates
+    // increment by the input amount
+    const nextDate = moment(datePointer).add(repeatIncrement, repeatUnit);
+    datePointer = nextDate;
+  }
 
-// create task objects for missing repeats
-// }
+  return allValidRepeatDates;
+}
 
 /* creates a missing task
 */
-async function createMissing(missingTask: ITaskWithRepeatTimeStamp,
-  verifiedAccessToken: string): Promise<boolean> {
+export async function createMissing(missingTask: ITaskWithRepeatTimeStamp,
+  verifiedAccessToken: string, originalTaskGid: string): Promise<boolean> {
   const {
     name, notes, projects, due_on, repeatTimeStamp,
   } = missingTask;
@@ -211,7 +230,7 @@ async function createMissing(missingTask: ITaskWithRepeatTimeStamp,
   const createUrl = buildUrl(apiUrlBase, {
     path: '/task',
     queryParams: {
-      name, notes, projectsTyped, due_on, tags: [`repeated:${repeatTimeStamp}`],
+      name, notes, projectsTyped, due_on, tags: [`repeated:${repeatTimeStamp}`, `originalTaskGid:${originalTaskGid}`],
     },
   });
 
@@ -225,7 +244,14 @@ async function createMissing(missingTask: ITaskWithRepeatTimeStamp,
       }),
     });
 
-    if (response.status === 201) { return true; }
+    if (response.status === 201) {
+      const data = await response.json();
+      console.log(`======= New Repeated Task Created =======
+${data}      
+`);
+
+      return true;
+    }
 
     const { status, statusText } = response;
     console.log(`Response status: ${status} - ${statusText}`);

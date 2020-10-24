@@ -21,5 +21,7 @@ module.exports = {
     'no-unused-vars': 0,
     'import/prefer-default-export': 0,
     'no-use-before-define': 0,
+    'no-useless-constructor': 0,
+    'no-empty function': 0,
   },
 };

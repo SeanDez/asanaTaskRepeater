@@ -29,5 +29,5 @@
   "include": [
     "src", "@types/express/index.d.ts"
   ],
-  "exclude": ["node_modules", "**/*.test.ts", "@types"],
+  "exclude": ["node_modules", "**/*.test", "@types", "__test__"],
 }
