@@ -13,7 +13,7 @@ export default class User {
   ) {}
 
   public async asyncInit() {
-    const rules = this.loadRules();
+    const rules = await this.loadRules();
   }
 
   // ------------------ Internal methods
@@ -28,6 +28,4 @@ export default class User {
       throw new Error(error);
     }
   }
-
-  private loadOriginalTasks() {}
 }

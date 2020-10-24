@@ -23,5 +23,6 @@ module.exports = {
     'no-use-before-define': 0,
     'no-useless-constructor': 0,
     'no-empty-function': 0,
+    'no-restricted-syntax': 0,
   },
 };

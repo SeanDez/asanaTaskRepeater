@@ -14,22 +14,17 @@ X get tasks by project
 X get tags for each task
 
 // repeater creation
-identify repeated tasks by tag
-create a task, tagged as repeated
-design a repeater rule by looping schedule
-design an "already repeated" method
+X create a task, tagged as repeated
+X create a process controller
+X write a User class
+X write the Rule class
+X write a loadAllRules method
+X createNew task method
+X design a rule against today check
+X write a jest test for the today check
+X switch to for/of loops for proper async operations
 
 
-------------
-PAUSE point
-
-I'm adding auth and createMissing to the script file (left)
-
-After i have some repeats loaded it will be possible to test my duplication automater
-
-I'm going for a piecemeal approach. doing a ton at once is just too hard
-
--------------
 
 
 

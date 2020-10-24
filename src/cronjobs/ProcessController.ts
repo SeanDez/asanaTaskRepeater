@@ -2,11 +2,7 @@ import 'es6-promise';
 import 'isomorphic-fetch';
 
 import User from './User';
-import RepeatRule from './RepeatRule';
-import Task from './Task';
-import envTyped from '../shared/envVariablesTyped';
 import { pgConfigured } from '../shared/database';
-import IRepeatRule from '../shared/interfaces/IRepeatRule';
 import TokenHandler from '../authTokenHandling/TokenHandler';
 import { IUserCredentials } from './IUserCredentials';
 import { createTask } from './createTask';
@@ -21,17 +17,17 @@ export default class ProcessController {
   /*
     get all users
     for each one, have them get their rules
-      if the rule applies today, pull the task info and do a copy operation
+      if the rule applies today, pull the task info and copy the task
   */
   public async copyQualifiedTasksForAll(): Promise<void> {
     try {
-      const unresolvedTasks = this.users.map(async (user: User) => {
+      for await (const user of this.users) {
         const tokenHandler = new TokenHandler(user.asanaEmail);
         const accessToken = await tokenHandler.getValidAuthToken();
 
         await user.asyncInit(); // loads all repeat rules
 
-        const ruleResults = user.rules.map(async (rule: RepeatRule) => {
+        for await (const rule of user.rules) {
           const appliesToday = rule.appliesToday();
 
           if (appliesToday) {
@@ -42,12 +38,8 @@ export default class ProcessController {
           } else {
             console.log(`-----------------\nToday does not match a copy command for user localId ${user.localId} on task gid ${rule.taskGid}\n\n`);
           }
-        });
-
-        await Promise.all(ruleResults);
-      });
-
-      await Promise.all(unresolvedTasks);
+        }
+      }
     } catch (error) {
       throw new Error(error);
     }
