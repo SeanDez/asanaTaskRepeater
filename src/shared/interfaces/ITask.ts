@@ -6,4 +6,4 @@ export default interface ITask {
   projects?: string[];
   due_at: string | undefined;
   due_on: string;
-}
+};
