@@ -4,5 +4,6 @@ export default interface ITask {
   notes: string;
   tags: string[];
   projects?: string[];
+  due_at: string | undefined;
   due_on: string;
 }

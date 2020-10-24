@@ -228,7 +228,7 @@ export async function createMissing(missingTask: ITaskWithRepeatTimeStamp,
   const projectsTyped = String(projects);
 
   const createUrl = buildUrl(apiUrlBase, {
-    path: '/task',
+    path: '/tasks',
     queryParams: {
       name, notes, projectsTyped, due_on, tags: [`repeated:${repeatTimeStamp}`, `originalTaskGid:${originalTaskGid}`],
     },
