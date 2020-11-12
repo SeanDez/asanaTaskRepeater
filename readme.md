@@ -1,6 +1,8 @@
 ## Asana Task Repeater - Backend (API)
 
-Do you duplicate a lot of tasks on Asana manually? This project will allow you to select a task and set a repeat interval. It will then do a daily scan of tasks that are set to be due in two weeks or less, and auto-duplicate them if they are not already created.
+This application requires this front end repo: https://github.com/SeanDez/asana_task_repeater_frontend
+
+Asana Task Repeater allows an Asana user to set repeat rules on certain tasks and have them automatically repeat. It uses cron job operations to do this twice per day.
 
 # Currently in pre-Alpha status
 
@@ -28,6 +30,5 @@ PGUSER
 PGPASSWORD
 ```
 
-Setup crontab on the server to run the script(s) located inside the cronjobs folder. Recommended interval is every hour
 
 

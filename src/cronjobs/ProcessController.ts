@@ -49,7 +49,7 @@ export default class ProcessController {
 
   /* Gets the user credentials for every user in the database
   */
-  async loadUsers(): Promise<void> {
+  private async loadUsers(): Promise<void> {
     const getAllUsersQuery = 'SELECT local_id, gid, asana_email,refresh_token_encrypted, access_token_encrypted FROM app_user;';
 
     try {
